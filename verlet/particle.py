@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from sympy import *
 from sympy.core import sympify
 from verlet.integrators import NoseHoover
@@ -81,7 +80,4 @@ if __name__ == '__main__':
     simulation = Particle(r=[1.0,1.0],p=[0.0,0.0])
     simulation.updatePotential(Ux='2*x**2',Uy='0.1*y**2')
     simulation.run()
-    plt.plot(simulation.xs)
-    plt.plot(simulation.ys)
-    plt.show()
    

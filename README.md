@@ -10,7 +10,12 @@ You can try out the sample simulation in the repo
 python example.py
 ```
 
-The most important thing to remember is that you must provide a user-defined potential that governs the evolution of the particle dynamics. It is entered as a string, which is then parsed by `sympy` and converted to an analytic expression for the forces.
+The most important thing to remember is that you must provide a user-defined potential that governs the evolution of the particle dynamics. It is entered as a string, which is then parsed by `sympy` and converted to an analytic expression for the forces. So if you created an object `simulation` as `simulation = Particle(r=[1.0],p=[0.0])`, you could add a harmonic potential by
+
+```
+mypotential = 'x**2'
+simulation.updatePotential(Ux=mypotential)
+```
 
 
 ### Dependencies
