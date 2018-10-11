@@ -14,7 +14,7 @@ The most important thing to remember is that you must provide a user-defined pot
 
 ```
 mypotential = 'x**2'
-simulation.updatePotential(Ux=mypotential)
+simulation.updatePotential(U=mypotential)
 ```
 
 

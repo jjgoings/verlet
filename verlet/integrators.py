@@ -1,11 +1,8 @@
 import numpy as np
-from sympy import *
-from sympy.core import sympify
 
-class NoseHoover(object):
+class Integrator(object):
     """
        Class to set up and run dynamics of constant temperature single particle 
-       according to the Nose-Hoover-Langevin thermostat in one or two dimensions
 
        r:    position (nm)
        p:    momenta (amu * nm / ps)
@@ -13,48 +10,58 @@ class NoseHoover(object):
        mass: mass (amu = g/mol)
        temp: temperature (K)
        dt:   timestep (ps)
-       gm:   friction (1/ps)
+       sig:  friction (1/ps)
     """
-    def integrate(self):
-        dt = self.dt
-        kT = self.kT
-        gm = self.gm 
-        N  = self.dim
-        r  = self.r 
-        p  = self.p 
-        z  = self.z 
-        F  = self.force 
-        m  = self.m
-        h = np.random.randn()
-
-        # integration adapted from Juan M. Bello-Rivas 
-        # (https://scicomp.stackexchange.com/users/15/juan-m-bello-rivas), 
-        # How to integrate numerically Nosé Hoover equation?, 
-        # URL (version: 2016-10-14): https://scicomp.stackexchange.com/q/25202
-
-        kinetic = lambda p: p*p/(2*m)  # kinetic energy (kcal/mol)
-
-        # begin integration 
-        z = np.exp(-0.5*gm*dt)*z + np.sqrt(kT/(m*(1. - np.exp(-gm*dt))))*h
+    def nosehoover(self):
+        dt  = self.dt
+        kT  = self.kT
+        sig = self.sig 
+        N   = self.dim
+        r   = self.r 
+        p   = self.p 
+        z   = self.z 
+        F   = self.force 
+        m   = self.m
+        h   = np.random.randn()
+        mu = 0.5 
 
         p = p + 0.5*dt*F(r)
+        r = r + 0.5*dt*p
+        p = np.exp(-0.5*dt*z)*p
 
-        p = p*np.exp(-0.25*z*dt)
-        z = z + 0.5*dt*(2*kinetic(p) - N*kT)/m
-        p = p*np.exp(-0.25*z*dt)
+        denom = 1 + (dt*sig**2)/(4*mu)
+        z = (1 - (dt*sig**2)/(4*mu))*z + (dt/mu)*(p*p/m - N*kT) + sig*np.sqrt(dt)*h
+        z = z/denom
 
-        r = r + dt*p/m
-
-        p = p*np.exp(-0.25*z*dt)
-        z = z + 0.5*dt*(2*kinetic(p) - N*kT)/m
-        p = p*np.exp(-0.25*z*dt)
-
+        p = np.exp(-0.5*dt*z)*p
+        r = r + 0.5*dt*p
         p = p + 0.5*dt*F(r)
 
-        z = np.exp(-0.5*gm*dt)*z + np.sqrt(kT/(m*(1. - np.exp(-gm*dt))))*h
-    
         # update state 
         self.r = r 
         self.p = p 
         self.z = z
+
+    def brownian(self):
+        # From stochastic integrator in LAMMPS (last pg of PDF below)
+        #https://www2.ph.ed.ac.uk/~dmarendu/MVP/MVP03.pdf
+        dt  = self.dt
+        kT  = self.kT
+        sig = self.sig
+        N   = self.dim
+        r   = self.r
+        p   = self.p
+        F   = self.force
+        m   = self.m
+        h   = np.random.randn()
+
+        p = p - 0.5*dt*(-F(r) + sig*p/m) + \
+             np.sqrt(dt*kT*sig/m)*h
+        r = r + dt*p/m
+        p = p - 0.5*dt*(-F(r)/m + sig*p/m) + \
+             np.sqrt(dt*kT*sig/m)*h
+
+        # update state
+        self.r = r
+        self.p = p
 
